@@ -32,6 +32,21 @@ monthnames = {
 'Dec': 12,
 }
 
+monthnames2 = {
+'January': 1,
+'February': 2,
+'March': 3,
+'April': 4,
+'May': 5,
+'June': 6,
+'July': 7,
+'August': 8,
+'September': 9,
+'October': 10,
+'November': 11,
+'December': 12,
+}
+
 
 def flush():
     sys.stdout.flush()
@@ -101,15 +116,19 @@ def analyze(cont, n, url):
     entry.update(extractdate(data, hour=True, monthdict=monthnames))
 
     if status == "Finalitzada":
-        datafin = reFinData.search(doc.find(
-            'div', class_='notice_div_main').find('span', text=reFinData).text)
-        fdata = extractdate(datafin)
-        entry['final'] = fdata
+        datafin = doc.find(
+            'div', class_='notice_div_main').find('span', text=reFinData)
+        if datafin:
+            datafin = reFinData.search(datafin.text)
+            fdata = extractdate(datafin, monthdict=monthnames2)
+            entry['final'] = fdata
     if status == "In development":
-        datafin = reDevel.search(doc.find(
-            'div', class_='notice_div_main').find('span', text=reDevel).text)
-        fdata = extractdate(datafin)
-        entry['final'] = fdata
+        datafin = doc.find(
+            'div', class_='notice_div_main').find('span', text=reDevel)
+        if datafin:
+            datafin = reDevel.search(datafin.text)
+            fdata = extractdate(datafin, monthdict=monthnames2)
+            entry['final'] = fdata
 
     solutions = [int(sid['value']) for sid in doc.find_all(
         attrs={'name': "solution-id"})]
