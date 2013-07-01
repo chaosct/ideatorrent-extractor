@@ -16,6 +16,7 @@ reFinData = re.compile(
     r"ha finalitzat el (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
 reDevel = re.compile(
     r"in development the (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
+reImpl = re.compile(r"implemented the (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
 
 monthnames = {
 'Jan': 1,
@@ -115,6 +116,7 @@ def analyze(cont, n, url):
     data = reData.search(doc.find(class_="authorlink").parent.text)
     entry.update(extractdate(data, hour=True, monthdict=monthnames))
 
+    #Finalization Date
     if status == "Finalitzada":
         datafin = doc.find(
             'div', class_='notice_div_main').find('span', text=reFinData)
@@ -127,6 +129,13 @@ def analyze(cont, n, url):
             'div', class_='notice_div_main').find('span', text=reDevel)
         if datafin:
             datafin = reDevel.search(datafin.text)
+            fdata = extractdate(datafin, monthdict=monthnames2)
+            entry['final'] = fdata
+    if status == "Ja portades a terme":
+        datafin = doc.find(
+            'div', class_='notice_div_main').find('span', text=reImpl)
+        if datafin:
+            datafin = reImpl.search(datafin.text)
             fdata = extractdate(datafin, monthdict=monthnames2)
             entry['final'] = fdata
 
