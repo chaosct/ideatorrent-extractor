@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 from unipath import Path
 import json
 
+exportpath = Path('export')
+
 reRaonament = re.compile("Raonament")
 reData = re.compile(
     r'el (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+) a les (?P<hora>\d\d:\d\d)')
@@ -115,7 +117,7 @@ def savejson(d):
     status = d['status']
     if status.startswith('Pendent'):
         status = 'Pendent'
-    carpeta = Path(status, d['any'], d['mes'])
+    carpeta = Path(exportpath, status, d['any'], d['mes'])
     carpeta.mkdir(parents=True)
     fpath = carpeta.child('{}.json'.format(d['id']))
     with open(fpath, 'w') as f:
