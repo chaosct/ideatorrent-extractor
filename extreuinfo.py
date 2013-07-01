@@ -9,6 +9,26 @@ import json
 reRaonament = re.compile("Raonament")
 reData = re.compile(
     r'el (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+) a les (?P<hora>\d\d:\d\d)')
+reFinData = re.compile(
+    r"ha finalitzat el (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
+reDevel = re.compile(
+    r"in development the (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
+
+monthnames = {
+'Jan': 1,
+'Feb': 2,
+'Mar': 3,
+'Apr': 4,
+'May': 5,
+'Jun': 6,
+'Jul': 7,
+'Aug': 8,
+'Sep': 9,
+'Oct': 10,
+'Nov': 11,
+'Dec': 12,
+}
+
 
 
 def sanitize(s, multiline=False):
@@ -35,6 +55,18 @@ def walkweb():
             savejson(entry)
 
 
+def extractdate(gr, hour=False, monthdict=None):
+    ddate = {}
+    ddate['any'] = int(gr.group('any'))
+    ddate['mes'] = gr.group('mes')
+    if monthdict:
+        ddate['mes'] = monthdict[ddate['mes']]
+    ddate['dia'] = int(gr.group('dia'))
+    if hour:
+        ddate['hora'] = gr.group('hora')
+    return ddate
+
+
 def analyze(cont, n, url):
     doc = BeautifulSoup(cont)
 
@@ -49,10 +81,18 @@ def analyze(cont, n, url):
                  status=status, id=n, solutions=[], url=url)
 
     data = reData.search(doc.find(class_="authorlink").parent.text)
-    entry['any'] = int(data.group('any'))
-    entry['mes'] = data.group('mes')
-    entry['dia'] = int(data.group('dia'))
-    entry['hora'] = data.group('hora')
+    entry.update(extractdate(data, hour=True, monthdict=monthnames))
+
+    if status == "Finalitzada":
+        datafin = reFinData.search(doc.find(
+            'div', class_='notice_div_main').find('span', text=reFinData).text)
+        fdata = extractdate(datafin)
+        entry['final'] = fdata
+    if status == "In development":
+        datafin = reDevel.search(doc.find(
+            'div', class_='notice_div_main').find('span', text=reDevel).text)
+        fdata = extractdate(datafin)
+        entry['final'] = fdata
 
     solutions = [int(sid['value']) for sid in doc.find_all(
         attrs={'name': "solution-id"})]
