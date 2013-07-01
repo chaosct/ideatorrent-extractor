@@ -53,7 +53,7 @@ def urlgenerator(begin=0,end=300):
 
 def walkweb():
     session = requests.session()
-    for n, url in urlgenerator(begin=0, end=300):
+    for n, url in urlgenerator(begin=11, end=300):
         print url,
         flush()
         repeat = True
@@ -68,6 +68,8 @@ def walkweb():
         if req.status_code == 200:
             entry = analyze(req.content, n, url)
             savejson(entry)
+        elif req.status_code == 404:
+            break
 
 
 def extractdate(gr, hour=False, monthdict=None):
