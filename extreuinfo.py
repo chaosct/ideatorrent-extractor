@@ -177,6 +177,7 @@ def savejson(d):
 
 
 def main():
+    exportpath.rmtree()
     walkweb()
 
 if __name__ == '__main__':
