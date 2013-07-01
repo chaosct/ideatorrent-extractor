@@ -17,6 +17,7 @@ reFinData = re.compile(
 reDevel = re.compile(
     r"in development the (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
 reImpl = re.compile(r"implemented the (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
+reDup = re.compile(r"This idea is a duplicate")
 
 monthnames = {
 'Jan': 1,
@@ -139,6 +140,14 @@ def analyze(cont, n, url):
             fdata = extractdate(datafin, monthdict=monthnames2)
             entry['final'] = fdata
 
+    #duplicate?
+    dup = doc.find('div', class_='notice_div_main')
+    dup = dup and dup.find(text=reDup)
+    if dup:
+        dupurl = dup.parent.find('a')['href']
+        entry['duplicate_url']=dupurl
+
+    #Solutions
     solutions = [int(sid['value']) for sid in doc.find_all(
         attrs={'name': "solution-id"})]
     for sid in solutions:
