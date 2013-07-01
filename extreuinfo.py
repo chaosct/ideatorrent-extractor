@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 from unipath import Path
 import json
+import sys
 
 exportpath = Path('export')
 
@@ -32,6 +33,9 @@ monthnames = {
 }
 
 
+def flush():
+    sys.stdout.flush()
+
 
 def sanitize(s, multiline=False):
     s = s.replace('\r', '\n').strip()
@@ -50,8 +54,17 @@ def urlgenerator(begin=0,end=300):
 def walkweb():
     session = requests.session()
     for n, url in urlgenerator(begin=0, end=300):
-        req = session.get(url)
-        print req.status_code, url
+        print url,
+        flush()
+        repeat = True
+        while repeat:
+            try:
+                req = session.get(url)
+                repeat = False
+            except requests.exceptions.ConnectionError:
+                print "Retry...",
+                flush()
+        print req.status_code
         if req.status_code == 200:
             entry = analyze(req.content, n, url)
             savejson(entry)
