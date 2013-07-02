@@ -7,6 +7,8 @@ from unipath import Path
 import json
 import sys
 from html2text import html2text
+from concurrent import futures
+from StringIO import StringIO
 
 exportpath = Path('export')
 
@@ -69,25 +71,34 @@ def urlgenerator(begin=0,end=300):
         yield n, url
 
 
+def processURL(n, url):
+    message = StringIO()
+    message.write(url)
+    repeat = True
+    while repeat:
+        try:
+            req = requests.get(url)
+            repeat = False
+        except requests.exceptions.ConnectionError:
+            message.write(" Retry...")
+    message.write(" {}".format(req.status_code))
+    return message, req, n, url
+
+
 def walkweb():
-    session = requests.session()
-    for n, url in urlgenerator(begin=11, end=300):
-        print url,
-        flush()
-        repeat = True
-        while repeat:
-            try:
-                req = session.get(url)
-                repeat = False
-            except requests.exceptions.ConnectionError:
-                print "Retry...",
-                flush()
-        print req.status_code
-        if req.status_code == 200:
-            entry = analyze(req.content, n, url)
-            savejson(entry)
-        elif req.status_code == 404:
-            break
+    with futures.ThreadPoolExecutor(max_workers=5) as executor:
+        fut_list = [executor.submit(
+            processURL, n, url) for n, url in urlgenerator(begin=11, end=300)]
+
+        for future in futures.as_completed(fut_list):
+            if future.exception() is not None:
+                print("Exception:", future.exception())
+            else:
+                message, req, n, url = future.result()
+                print(message.getvalue())
+                if req.status_code == 200:
+                    entry = analyze(req.content, n, url)
+                    savejson(entry)
 
 
 def extractdate(gr, hour=False, monthdict=None):
