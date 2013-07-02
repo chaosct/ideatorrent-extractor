@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from unipath import Path
 import json
 import sys
+from html2text import html2text
 
 exportpath = Path('export')
 
@@ -106,8 +107,8 @@ def analyze(cont, n, url):
 
     titol = doc.find('div', text=re.compile("Idea #{}:".format(n))).text
     titol = sanitize(titol)
-    desc = doc.find('div', text=reRaonament).parent("div")[1].text
-    desc = sanitize(desc, multiline=True)
+    desc = doc.find('div', text=reRaonament).parent("div")[1]
+    desc = html2text(unicode(desc))
     status = doc.find(id='status_string').text
     status = sanitize(status)
 
