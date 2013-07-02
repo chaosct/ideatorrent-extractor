@@ -117,7 +117,7 @@ def analyze(cont, n, url):
     data = reData.search(doc.find(class_="authorlink").parent.text)
     entry.update(extractdate(data, hour=True, monthdict=monthnames))
 
-    #Finalization Date
+    # Finalization Date
     if status == "Finalitzada":
         datafin = doc.find(
             'div', class_='notice_div_main').find('span', text=reFinData)
@@ -140,14 +140,14 @@ def analyze(cont, n, url):
             fdata = extractdate(datafin, monthdict=monthnames2)
             entry['final'] = fdata
 
-    #duplicate?
+    # duplicate?
     dup = doc.find('div', class_='notice_div_main')
     dup = dup and dup.find(text=reDup)
     if dup:
         dupurl = dup.parent.find('a')['href']
-        entry['duplicate_url']=dupurl
+        entry['duplicate_url'] = dupurl
 
-    #Solutions
+    # Solutions
     solutions = [int(sid['value']) for sid in doc.find_all(
         attrs={'name': "solution-id"})]
     for sid in solutions:
