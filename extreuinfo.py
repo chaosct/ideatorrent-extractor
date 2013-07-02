@@ -162,6 +162,9 @@ def analyze(cont, n, url):
                     down=vdown, title=title, desc=desc)
         entry['solutions'].append(dsol)
 
+    # Sort Solutions
+    entry['solutions'].sort(key=lambda i: i['id'])
+
     return entry
 
 
