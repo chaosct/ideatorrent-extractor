@@ -87,7 +87,7 @@ def processURL(n, url):
 
 
 def walkweb():
-    with futures.ThreadPoolExecutor(max_workers=5) as executor:
+    with futures.ThreadPoolExecutor(max_workers=8) as executor:
         fut_list = [executor.submit(
             processURL, n, url) for n, url in urlgenerator(begin=11, end=300)]
 
