@@ -21,6 +21,7 @@ reDevel = re.compile(
     r"in development the (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
 reImpl = re.compile(r"implemented the (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
 reDup = re.compile(r"This idea is a duplicate")
+reTag = re.compile(r"https://xifrat.pirata.cat/ideatorrent/\?tags=")
 
 monthnames = {
 'Jan': 1,
@@ -119,12 +120,16 @@ def analyze(cont, n, url):
     titol = doc.find('div', text=re.compile("Idea #{}:".format(n))).text
     titol = sanitize(titol)
     desc = doc.find('div', text=reRaonament).parent("div")[1]
+    links = desc('a')
+    tags = []
+    if links:
+        tags = [a.text for a in links if reTag.match(a['href'])]
     desc = html2text(unicode(desc))
     status = doc.find(id='status_string').text
     status = sanitize(status)
 
     entry = dict(titol=titol, desc=desc,
-                 status=status, id=n, solutions=[], url=url)
+                 status=status, id=n, solutions=[], url=url, tags=tags)
 
     data = reData.search(doc.find(class_="authorlink").parent.text)
     entry.update(extractdate(data, hour=True, monthdict=monthnames))
