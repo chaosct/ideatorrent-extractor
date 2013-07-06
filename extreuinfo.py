@@ -14,12 +14,12 @@ exportpath = Path('export')
 
 reRaonament = re.compile("Raonament")
 reData = re.compile(
-    r'el (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+) a les (?P<hora>\d\d:\d\d)')
+    r'el (?P<day>\d+) (?P<month>\w+) (?P<year>\d+) a les (?P<hour>\d\d:\d\d)')
 reFinData = re.compile(
-    r"ha finalitzat el (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
+    r"ha finalitzat el (?P<day>\d+) (?P<month>\w+) (?P<year>\d+)")
 reDevel = re.compile(
-    r"in development the (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
-reImpl = re.compile(r"implemented the (?P<dia>\d+) (?P<mes>\w+) (?P<any>\d+)")
+    r"in development the (?P<day>\d+) (?P<month>\w+) (?P<year>\d+)")
+reImpl = re.compile(r"implemented the (?P<day>\d+) (?P<month>\w+) (?P<year>\d+)")
 reDup = re.compile(r"This idea is a duplicate")
 reTag = re.compile(r"https://xifrat.pirata.cat/ideatorrent/\?tags=")
 
@@ -104,21 +104,21 @@ def walkweb():
 
 def extractdate(gr, hour=False, monthdict=None):
     ddate = {}
-    ddate['any'] = int(gr.group('any'))
-    ddate['mes'] = gr.group('mes')
+    ddate['year'] = int(gr.group('year'))
+    ddate['month'] = gr.group('month')
     if monthdict:
-        ddate['mes'] = monthdict[ddate['mes']]
-    ddate['dia'] = int(gr.group('dia'))
+        ddate['month'] = monthdict[ddate['month']]
+    ddate['day'] = int(gr.group('day'))
     if hour:
-        ddate['hora'] = gr.group('hora')
+        ddate['hour'] = gr.group('hour')
     return ddate
 
 
 def analyze(cont, n, url):
     doc = BeautifulSoup(cont)
 
-    titol = doc.find('div', text=re.compile("Idea #{}:".format(n))).text
-    titol = sanitize(titol)
+    title = doc.find('div', text=re.compile("Idea #{}:".format(n))).text
+    title = sanitize(title)
     desc = doc.find('div', text=reRaonament).parent("div")[1]
     links = desc('a')
     tags = []
@@ -128,7 +128,7 @@ def analyze(cont, n, url):
     status = doc.find(id='status_string').text
     status = sanitize(status)
 
-    entry = dict(titol=titol, desc=desc,
+    entry = dict(title=title, desc=desc,
                  status=status, id=n, solutions=[], url=url, tags=tags)
 
     data = reData.search(doc.find(class_="authorlink").parent.text)
@@ -141,21 +141,21 @@ def analyze(cont, n, url):
         if datafin:
             datafin = reFinData.search(datafin.text)
             fdata = extractdate(datafin, monthdict=monthnames2)
-            entry['final'] = fdata
+            entry['end'] = fdata
     if status == "In development":
         datafin = doc.find(
             'div', class_='notice_div_main').find('span', text=reDevel)
         if datafin:
             datafin = reDevel.search(datafin.text)
             fdata = extractdate(datafin, monthdict=monthnames2)
-            entry['final'] = fdata
+            entry['end'] = fdata
     if status == "Ja portades a terme":
         datafin = doc.find(
             'div', class_='notice_div_main').find('span', text=reImpl)
         if datafin:
             datafin = reImpl.search(datafin.text)
             fdata = extractdate(datafin, monthdict=monthnames2)
-            entry['final'] = fdata
+            entry['end'] = fdata
 
     # duplicate?
     dup = doc.find('div', class_='notice_div_main')
@@ -189,7 +189,7 @@ def savejson(d):
     status = d['status']
     if status.startswith('Pendent'):
         status = 'Pendent'
-    carpeta = Path(exportpath, status, d['any'], d['mes'])
+    carpeta = Path(exportpath, status, d['year'], d['month'])
     carpeta.mkdir(parents=True)
     fpath = carpeta.child('{}.json'.format(d['id']))
     with open(fpath, 'w') as f:
